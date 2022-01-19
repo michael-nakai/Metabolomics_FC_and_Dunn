@@ -8,12 +8,17 @@ class ImportedData:
 
     def __init__(self, df):
         self.main_dataframe = df
-        self.DKOAng = df.loc[df['label'] == 'DKO_Ang'].iloc[:, 2:] # Removes first two cols
+        self.DKOAng = df.loc[df['label'] == 'DKO_Ang'].iloc[:, 2:]  # Removes first two cols
         self.DKOSham = df.loc[df['label'] == 'DKO_Sham'].iloc[:, 2:]
         self.TKOSham = df.loc[df['label'] == 'TKO_Sham'].iloc[:, 2:]
         self.WTAng = df.loc[df['label'] == 'WT_Ang'].iloc[:, 2:]
         self.WTSham = df.loc[df['label'] == 'WT_Sham'].iloc[:, 2:]
         self.results = pd.DataFrame()
+        self.DKOAng = self.DKOAng.reindex(sorted(self.DKOAng.columns), axis=1)  # Order the columns alphabetically
+        self.DKOSham = self.DKOSham.reindex(sorted(self.DKOSham.columns), axis=1)
+        self.TKOSham = self.TKOSham.reindex(sorted(self.TKOSham.columns), axis=1)
+        self.WTAng = self.WTAng.reindex(sorted(self.WTAng.columns), axis=1)
+        self.WTSham = self.WTSham.reindex(sorted(self.WTSham.columns), axis=1)
 
     def calculate_values(self):
         # Calculate FC and q_values for every metabolite
@@ -40,12 +45,12 @@ class ImportedData:
 
             for colname in group1:
                 # Calculate everything first
-                group1_avg = stats.mean(group1[colname])
-                group2_avg = stats.mean(group2[colname])
+                group1_avg = group1[colname].mean()
+                group2_avg = group2[colname].mean()
                 if not group2_avg == 0:
                     fold_change = group1_avg / group2_avg
                 else:
-                    fold_change = 'Undefined'
+                    fold_change = 'Undefined, divide by 0 error'
                 p_val = sc_post.posthoc_dunn([group1[colname], group2[colname]]).iloc[1][1]
                 q_val = sc_post.posthoc_dunn([group1[colname], group2[colname]], p_adjust='fdr_bh').iloc[1][1]
 
